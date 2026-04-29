@@ -22,6 +22,6 @@
     }
   ],
   "env": {
-    "CACHE_SECRET": "5000"
+    "CACHE_SECRET": "@cache-secret"
   }
 }
