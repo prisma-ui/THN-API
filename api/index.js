@@ -31,6 +31,7 @@ const {
   cacheSet,
   cacheClear,
   cacheStats,
+  generateCacheKey,
   DEFAULT_TTL,
 } = require("../lib/cache");
 
@@ -70,9 +71,16 @@ module.exports = asyncHandler(async (req, res) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") return res.status(204).end();
 
-  const url = new URL(req.url, `https://${req.headers.host || "localhost"}`);
-  const { pathname } = url;
-  const query = Object.fromEntries(url.searchParams);
+  // Safe URL parsing with try-catch
+  let url, pathname, query;
+  try {
+    url = new URL(req.url, `https://${req.headers.host || "localhost"}`);
+    pathname = url.pathname;
+    query = Object.fromEntries(url.searchParams);
+  } catch (err) {
+    console.error("[API] URL parsing error:", err.message);
+    return errorResponse(res, "Invalid request URL", 400);
+  }
 
   const { route, slug, name } = matchRoute(pathname);
 
@@ -139,7 +147,7 @@ module.exports = asyncHandler(async (req, res) => {
       return errorResponse(res, "Missing required query param: url", 400);
 
     const targetUrl = decodeURIComponent(query.url);
-    const cacheKey = `article:${targetUrl}`;
+    const cacheKey = generateCacheKey("article", targetUrl);
     const cached = cacheGet(cacheKey);
     if (cached) return successResponse(res, { cached: true, article: cached });
 
@@ -150,14 +158,19 @@ module.exports = asyncHandler(async (req, res) => {
 
   // ── GET /api/category/:name — Category Feed ───────────
   if (route === "category") {
-    const cursor = query.cursor || null;
-    const cacheKey = `category:${name}:${cursor || "first"}`;
-    const cached = cacheGet(cacheKey);
-    if (cached) return successResponse(res, { cached: true, category: name, ...cached });
+    try {
+      const cursor = query.cursor || null;
+      const cacheKey = `category:${name}:${cursor || "first"}`;
+      const cached = cacheGet(cacheKey);
+      if (cached) return successResponse(res, { cached: true, category: name, ...cached });
 
-    const data = await scrapeCategory(name, cursor);
-    cacheSet(cacheKey, data, DEFAULT_TTL.list);
-    return successResponse(res, { cached: false, category: name, ...data });
+      const data = await scrapeCategory(name, cursor);
+      cacheSet(cacheKey, data, DEFAULT_TTL.list);
+      return successResponse(res, { cached: false, category: name, ...data });
+    } catch (err) {
+      console.error("[API] Category validation error:", err.message);
+      return errorResponse(res, `Invalid category: ${err.message}`, 400);
+    }
   }
 
   // ── GET /api/search?q= — Search ───────────────────────
