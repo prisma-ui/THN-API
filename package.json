@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Unofficial REST API wrapper for The Hacker News (thehackernews.com)",
   "main": "api/index.js",
-  "engines": { "node": ">=18.x" },
+  "engines": { "node": "20.x" },
   "scripts": {
     "dev": "node server.js",
     "start": "node server.js",
