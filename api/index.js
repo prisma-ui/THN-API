@@ -24,7 +24,7 @@ const {
   scrapeCategory,
   scrapeSearch,
   scrapeSiteMeta,
-} = require("./lib/scraper");
+} = require("../lib/scraper");
 
 const {
   cacheGet,
@@ -32,14 +32,14 @@ const {
   cacheClear,
   cacheStats,
   DEFAULT_TTL,
-} = require("./lib/cache");
+} = require("../lib/cache");
 
 const {
   successResponse,
   errorResponse,
   asyncHandler,
   setCORSHeaders,
-} = require("./lib/helpers");
+} = require("../lib/helpers");
 
 // ── Micro-router ──────────────────────────────────────────
 function matchRoute(pathname) {

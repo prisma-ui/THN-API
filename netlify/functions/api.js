@@ -24,6 +24,7 @@ exports.handler = async (event, context) => {
     statusCode,
     status(code) {
       statusCode = code;
+      this.statusCode = code;
       return this;
     },
     setHeader(key, value) {

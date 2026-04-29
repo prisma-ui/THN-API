@@ -22,7 +22,6 @@ const server = http.createServer((req, res) => {
     res.end(JSON.stringify(data, null, 2));
     return res;
   };
-  res.setHeader("Content-Type", "application/json");
   handler(req, res);
 });
 
