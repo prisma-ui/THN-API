@@ -11,7 +11,7 @@
     "start": "node server.js",
     "deploy:vercel": "vercel --prod",
     "deploy:netlify": "netlify deploy --prod",
-    "build:worker": "esbuild workers/index.js --bundle --outfile=dist/worker.js --format=esm --target=esnext --platform=browser --external:__STATIC_CONTENT_MANIFEST",
+    "build:worker": "esbuild workers/index.js --bundle --outfile=dist/worker.js --format=esm --target=esnext --platform=browser",
     "deploy:worker": "npm run build:worker && wrangler deploy"
   },
   "dependencies": {

@@ -11,7 +11,7 @@ import {
   scrapeCategory,
   scrapeSearch,
   scrapeSiteMeta,
-} from "./lib/scraper-cf";
+} from "../lib/scraper-cf";
 
 // Simple in-memory cache (per-worker-instance)
 const CACHE = new Map();
