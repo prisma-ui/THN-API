@@ -1,15 +1,11 @@
 {
   "version": 2,
   "name": "thn-api",
-  "builds": [
-    {
-      "src": "api/index.js",
-      "use": "@vercel/node",
-      "config": {
-        "maxLambdaSize": "15mb"
-      }
+  "functions": {
+    "api/index.js": {
+      "maxDuration": 30
     }
-  ],
+  },
   "routes": [
     { "src": "/docs", "dest": "/api/index.js" },
     { "src": "/docs/(.*)", "dest": "/api/index.js" },
@@ -19,11 +15,6 @@
     { "src": "/api", "dest": "/api/index.js" },
     { "src": "/", "dest": "/api/index.js" }
   ],
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 30
-    }
-  },
   "env": {
     "CACHE_SECRET": "thn-secret-2025"
   }
