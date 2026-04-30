@@ -27,6 +27,8 @@ const server = http.createServer((req, res) => {
 
 server.listen(PORT, () => {
   console.log(`\n🚀 THN API running at http://localhost:${PORT}`);
+  console.log(`📚 Swagger UI:        http://localhost:${PORT}/api/docs`);
+  console.log(`📄 OpenAPI JSON spec: http://localhost:${PORT}/api/docs/openapi.json`);
   console.log("\nAvailable endpoints:");
   console.log(`  GET http://localhost:${PORT}/api`);
   console.log(`  GET http://localhost:${PORT}/api/news`);

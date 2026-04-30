@@ -31,7 +31,6 @@ const {
   cacheSet,
   cacheClear,
   cacheStats,
-  generateCacheKey,
   DEFAULT_TTL,
 } = require("../lib/cache");
 
@@ -41,6 +40,8 @@ const {
   asyncHandler,
   setCORSHeaders,
 } = require("../lib/helpers");
+
+const { docsHandler } = require("../lib/swagger");
 
 // ── Micro-router ──────────────────────────────────────────
 function matchRoute(pathname) {
@@ -71,15 +72,14 @@ module.exports = asyncHandler(async (req, res) => {
   // Handle CORS preflight
   if (req.method === "OPTIONS") return res.status(204).end();
 
-  // Safe URL parsing with try-catch
-  let url, pathname, query;
-  try {
-    url = new URL(req.url, `https://${req.headers.host || "localhost"}`);
-    pathname = url.pathname;
-    query = Object.fromEntries(url.searchParams);
-  } catch (err) {
-    console.error("[API] URL parsing error:", err.message);
-    return errorResponse(res, "Invalid request URL", 400);
+  const url = new URL(req.url, `https://${req.headers.host || "localhost"}`);
+  const { pathname } = url;
+  const query = Object.fromEntries(url.searchParams);
+
+  // ── Swagger / OpenAPI Docs ─────────────────────────────
+  if (pathname.startsWith("/api/docs") || pathname === "/docs") {
+    const handled = await docsHandler(req, res, pathname);
+    if (handled !== false) return;
   }
 
   const { route, slug, name } = matchRoute(pathname);
@@ -92,6 +92,8 @@ module.exports = asyncHandler(async (req, res) => {
       description: "Unofficial REST API for thehackernews.com",
       source: "https://thehackernews.com",
       endpoints: {
+        "GET /api/docs": "Interactive Swagger UI documentation",
+        "GET /api/docs/openapi.json": "Raw OpenAPI 3.0 spec",
         "GET /api/news": "Latest articles (home page)",
         "GET /api/news?page_url=URL": "Paginate articles",
         "GET /api/news/:year/:month/:slug.html": "Full article by slug",
@@ -147,7 +149,7 @@ module.exports = asyncHandler(async (req, res) => {
       return errorResponse(res, "Missing required query param: url", 400);
 
     const targetUrl = decodeURIComponent(query.url);
-    const cacheKey = generateCacheKey("article", targetUrl);
+    const cacheKey = `article:${targetUrl}`;
     const cached = cacheGet(cacheKey);
     if (cached) return successResponse(res, { cached: true, article: cached });
 
@@ -158,19 +160,14 @@ module.exports = asyncHandler(async (req, res) => {
 
   // ── GET /api/category/:name — Category Feed ───────────
   if (route === "category") {
-    try {
-      const cursor = query.cursor || null;
-      const cacheKey = `category:${name}:${cursor || "first"}`;
-      const cached = cacheGet(cacheKey);
-      if (cached) return successResponse(res, { cached: true, category: name, ...cached });
+    const cursor = query.cursor || null;
+    const cacheKey = `category:${name}:${cursor || "first"}`;
+    const cached = cacheGet(cacheKey);
+    if (cached) return successResponse(res, { cached: true, category: name, ...cached });
 
-      const data = await scrapeCategory(name, cursor);
-      cacheSet(cacheKey, data, DEFAULT_TTL.list);
-      return successResponse(res, { cached: false, category: name, ...data });
-    } catch (err) {
-      console.error("[API] Category validation error:", err.message);
-      return errorResponse(res, `Invalid category: ${err.message}`, 400);
-    }
+    const data = await scrapeCategory(name, cursor);
+    cacheSet(cacheKey, data, DEFAULT_TTL.list);
+    return successResponse(res, { cached: false, category: name, ...data });
   }
 
   // ── GET /api/search?q= — Search ───────────────────────
@@ -203,7 +200,7 @@ module.exports = asyncHandler(async (req, res) => {
   if (route === "cache") {
     if (req.method === "DELETE") {
       const secret = query.secret || "";
-      const adminSecret = process.env.CACHE_SECRET || "thn-secret-2025";
+      const adminSecret = process.env.CACHE_SECRET || "thn-secret-2025"; // Set CACHE_SECRET env var in production
       if (secret !== adminSecret)
         return errorResponse(res, "Invalid or missing secret", 401);
       cacheClear();

@@ -4,6 +4,21 @@ Unofficial REST API wrapper for [thehackernews.com](https://thehackernews.com) â
 
 ---
 
+## API Documentation
+
+Interactive Swagger UI is available at:
+
+```
+GET /api/docs
+```
+
+Raw OpenAPI 3.0 spec (JSON):
+
+```
+GET /api/docs/openapi.json
+```
+
+
 ## ðŸš€ Quick Start
 
 ### 1. Install dependencies

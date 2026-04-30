@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: thn-api
+    runtime: node
+    plan: free
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: CACHE_SECRET
+        generateValue: true
