@@ -1,0 +1,7 @@
+name = "thn-api"
+main = "dist/worker.js"
+compatibility_date = "2024-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+[build]
+command = "npm run build:worker"
