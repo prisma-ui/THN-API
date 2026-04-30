@@ -12,6 +12,6 @@
     }
   ],
   "env": {
-    "CACHE_SECRET": "@cache-secret"
+    "CACHE_SECRET": "thn-secret-2025"
   }
 }
